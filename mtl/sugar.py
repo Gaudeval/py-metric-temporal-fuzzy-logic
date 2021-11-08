@@ -10,11 +10,23 @@ def env(phi, *, lo=0, hi=float('inf')):
 
 
 def implies(x, y):
-    return ~x | y
+    return ast.Implies(x, y)
 
 
 def xor(x, y):
     return (x | y) & ~(x & y)
+
+
+def le(x, y, t=0.):
+    return (x.lt(y, t) | x.eq(y, t))
+
+
+def gt(x, y, t=0.):
+    return ~(x.le(y, t))
+
+
+def ge(x, y, t=0.):
+    return ~(x.lt(y, t))
 
 
 def iff(x, y):

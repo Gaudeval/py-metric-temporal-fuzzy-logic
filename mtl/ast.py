@@ -29,11 +29,19 @@ def flatten_binary(phi, op, dropT, shortT):
 
 
 def _or(exp1, exp2):
-    return ~(~exp1 & ~exp2)
+    return flatten_binary(Or((exp1, exp2)), Or, BOT, TOP)
 
 
 def _and(exp1, exp2):
     return flatten_binary(And((exp1, exp2)), And, TOP, BOT)
+
+
+def _lt(exp1, exp2, tolerance=0.):
+    return Lt(exp1, exp2, abs(tolerance))
+
+
+def _eq(exp1, exp2, tolerance=0.):
+    return Eq(exp1, exp2, abs(tolerance))
 
 
 def _neg(exp):
@@ -42,9 +50,9 @@ def _neg(exp):
     return Neg(exp)
 
 
-def _eval(exp, trace, time=False, *, dt=0.1, quantitative=True):
+def _eval(exp, trace, time=False, *, dt=0.1, quantitative=True, logic=None):
     from mtl import evaluator
-    return evaluator.pointwise_sat(exp, dt)(trace, time, quantitative)
+    return evaluator.pointwise_sat(exp, dt, logic)(trace, time, quantitative)
 
 
 def _timeshift(exp, t):
@@ -63,7 +71,8 @@ def _walk(exp):
     while len(children) > 0:
         node = pop(children)
         yield node
-        children.extend(node.children)
+        if hasattr(node, "children"):
+            children.extend(node.children)
 
 
 def _params(exp):
@@ -121,23 +130,38 @@ def ast_class(cls):
     cls.__call__ = _eval
     cls.__rshift__ = _timeshift
     cls.__getitem__ = _inline_context
+    cls.__lt__ = _lt
+    cls.__le__ = sugar.le
+    cls.__gt__ = sugar.gt
+    cls.__ge__ = sugar.ge
     cls.walk = _walk
     cls.params = property(_params)
     cls.atomic_predicates = property(_atomic_predicates)
     cls.evolve = attr.evolve
     cls.iff = sugar.iff
-    cls.implies = sugar.implies
+    cls.implies = lambda a, b: Implies(a, b)
     # Avoid circular dependence.
     cls.weak_until = lambda a, b: WeakUntil(a, b)
     cls.until = sugar.until
     cls.timed_until = sugar.timed_until
     cls.always = sugar.alw
     cls.eventually = sugar.env
+    cls.eq = _eq
+    cls.lt = _lt
+    cls.le = sugar.le
+    cls.ge = sugar.ge
+    cls.gt = sugar.gt
 
     if not hasattr(cls, "children"):
         cls.children = property(lambda _: ())
 
-    return attr.s(frozen=True, auto_attribs=True, repr=False, slots=True)(cls)
+    return attr.s(
+        frozen=True,
+        auto_attribs=True,
+        repr=False,
+        slots=True,
+        order=False
+    )(cls)
 
 
 def _update_itvl(itvl, lookup):
@@ -190,6 +214,35 @@ class And(NaryOpMTL):
     OP = "&"
 
 
+class Or(NaryOpMTL):
+    OP = "|"
+
+
+@ast_class
+class BinaryOpMTL:
+    OP = "?"
+    arg1: Node
+    arg2: Node
+    tolerance: float
+
+    def __repr__(self):
+        if self.tolerance != 0.:
+            return f"({self.arg1} {self.OP}[~{self.tolerance}] {self.arg2})"
+        return f"({self.arg1} {self.OP} {self.arg2})"
+
+    @property
+    def children(self):
+        return (self.arg1, self.arg2)
+
+
+class Lt(BinaryOpMTL):
+    OP = "<"
+
+
+class Eq(BinaryOpMTL):
+    OP = "="
+
+
 @ast_class
 class ModalOp:
     OP = '?'
@@ -217,6 +270,19 @@ class WeakUntil:
 
     def __repr__(self):
         return f"({self.arg1} W {self.arg2})"
+
+    @property
+    def children(self):
+        return (self.arg1, self.arg2)
+
+
+@ast_class
+class Implies:
+    arg1: Node
+    arg2: Node
+
+    def __repr__(self):
+        return f"({self.arg1} → {self.arg2})"
 
     @property
     def children(self):
