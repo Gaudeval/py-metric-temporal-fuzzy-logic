@@ -1,17 +1,17 @@
-<figure>
-  <img src="assets/logo.png" alt="py-metric-temporal logic logo" width=300px>
-  <figcaption>
-  A library for manipulating and evaluating metric temporal logic.
-  </figcaption>
-</figure>
+TODO: Logo
 
-
-
-[![Build Status](https://cloud.drone.io/api/badges/mvcisback/py-metric-temporal-logic/status.svg)](https://cloud.drone.io/mvcisback/py-metric-temporal-logic)
-[![codecov](https://codecov.io/gh/mvcisback/py-metric-temporal-logic/branch/master/graph/badge.svg)](https://codecov.io/gh/mvcisback/py-metric-temporal-logic)
-[![PyPI version](https://badge.fury.io/py/metric-temporal-logic.svg)](https://badge.fury.io/py/metric-temporal-logic)
+<!-- [![Build Status](https://cloud.drone.io/api/badges/mvcisback/py-metric-temporal-logic/status.svg)](https://cloud.drone.io/mvcisback/py-metric-temporal-logic) -->
+<!-- [![codecov](https://codecov.io/gh/mvcisback/py-metric-temporal-logic/branch/master/graph/badge.svg)](https://codecov.io/gh/mvcisback/py-metric-temporal-logic) -->
+<!-- [![PyPI version](https://badge.fury.io/py/metric-temporal-logic.svg)](https://badge.fury.io/py/metric-temporal-logic) -->
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![DOI](https://zenodo.org/badge/72686883.svg)](https://zenodo.org/badge/latestdoi/72686883)
+
+> **WARNING**: This is an experimental fork of the `metric-temporal-logic` library, 
+> available at [mvcisback/py-metric-temporal-logic](https://github.com/mvcisback/py-metric-temporal-logic). 
+> It adds support for different fuzzy connectives to the evaluation logic; the 
+> changes support different semantics for the core logical operations: norm (and), 
+> conorm (or), implication, and negation (not). Unless those changes are a strong 
+> requirement, we recommend the use of the original library.
 
 <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-generate-toc again -->
 **Table of Contents**
@@ -26,6 +26,7 @@
         - [Propositional logic (parse api)](#propositional-logic-parse-api)
         - [Modal Logic (parser api)](#modal-logic-parser-api)
     - [Boolean Evaluation](#boolean-evaluation)
+    - [Fuzzy Evaluation](#fuzzy-evaluation)
     - [Quantitative Evaluate (Signal Temporal Logic)](#quantitative-evaluate-signal-temporal-logic)
     - [Utilities](#utilities)
 - [Similar Projects](#similar-projects)
@@ -35,13 +36,23 @@
 
 # About
 
-Python library for working with Metric Temporal Logic (MTL). Metric
+Python library for working with Metric Temporal Logic (MTL) with fuzzy logic. Metric
 Temporal Logic is an extension of Linear Temporal Logic (LTL) for
-specifying properties over time series (See [Alur][1]). Some practical examples are
-given in the usage.
+specifying properties over time series (See [Alur][1]). Fuzzy Logic introduces fuzzy 
+valuation of the properties, as an example in the interval `[0;1]` as opposed to crisp 
+`True`/`False` values (See [FT-LTL][2]). The library does not introduce Fuzzy Time 
+operators such as *almost always*. Some practical examples are given in the usage.
 
 # Installation
 
+There is currently no release of the library. It needs to be built locally using the
+[poetry](https://poetry.eustace.io/) python package/dependency
+management tool:
+`$ poetry build`
+
+The package can be installed locally using your reference package manager.
+
+<!--
 If you just need to use `metric-temporal-logic`, you can just run:
 
 `$ pip install metric-temporal-logic`
@@ -52,7 +63,7 @@ management tool. Please familarize yourself with it and then
 run:
 
 `$ poetry install`
-
+-->
 
 # Usage
 
@@ -108,6 +119,7 @@ phi6 = a.timed_until(b, lo=0, hi=2)
 # `a` holds in two time steps.
 phi7 = a >> 2
 ```
+
 
 ## String based API
 
@@ -228,6 +240,74 @@ print(phi(data, dt=0.2, quantitative=False))
 # output: True
 ```
 
+
+## Fuzzy Evaluation
+
+Fuzzy evaluation considers the signals as fuzzy values or values to be
+compared through fuzzy operators. The connectives used for evaluation,
+that is the implementation of the basic logic operations such as `and`
+or `or`, can be specified through the `logic` parameter. The connectives 
+available in `mtl.connective` are `default`, `zadeh`, `godel`, 
+`lukasiewicz`, and `product` (See [FT-LTL][2]).
+
+```python
+a = mtl.parse("a")
+b = mtl.parse("b")
+
+d = {
+    "a": [(0,  5.), (1, 10.),           (3,  0.), (4, 10.), (5, 11.)],
+    "b": [(0, 15.),           (2,  5.),           (4, 10.),        ],
+}
+
+# Crisp comparison between the value of a and a constant
+i = a < 6
+print(i, i(d, time=None, logic=mtl.connective.zadeh, quantitative=True))
+# output: (a < 6) [(0, 1.0), (1, 0.0), (3, 1.0), (4, 0.0), (5, 0.0)]
+
+# Crisp comparison between the value of a and b
+i = a < b
+print(i, i(d, time=None, logic=mtl.connective.zadeh, quantitative=True))
+# output: (a < b) [(0, 1.0), (1, 1.0), (2, 0.0), (3, 1.0), (4, 0.0), (5, 0.0)]
+
+# Fuzzy comparison between the value of a and b, increasing as a decreases in the interval (b;b+10]
+i = a.lt(b, 10)
+print(i, i(d, time=None, logic=mtl.connective.zadeh, quantitative=True))
+# output: (a <[~10] b) [(0, 1.0), (1, 1.0), (2, 0.5), (3, 1.0), (4, 1.0), (5, 0.9)]
+
+# Temporal fuzzy operation
+i = a.lt(b, 10).always()
+print(i, i(d, logic=mtl.connective.zadeh, quantitative=True))
+# output: G(a <[~10] b) 0.5
+```
+
+### Fuzzy caveats
+
+Consider using `quantitvative=True` when specifying a fuzzy logic. 
+Combining fuzzy and boolean evaluation might result in unexpected 
+behaviours due to the underlying conversion of signal values to 
+boolean ones. 
+
+Note that the library only evaluates signals and operations at 
+pivot points, where their value changes. This might result in 
+invalid values for some connectives (`product`). Consider the 
+following example:
+```
+data = {
+    'a': [(0, 0.5), (1, 0.1)],
+}
+
+phi = mtl.parse('G(a)')
+print(phi(data, quantitative=False))
+# output: 0.05
+```
+
+Under the `product` connective (See [FT-LTL][2]), the norm operator
+is defined as the product of two values. `phi` thus evaluates to 
+`0.05 = 0.5 * 0.1` across the whole signal when it should actually 
+tend towards `0` due to the repeated valuation of `a < 1` at all 
+time instants.
+
+
 ## Utilities
 ```python
 import mtl
@@ -258,3 +338,4 @@ Feel free to open up a pull-request to add other similar projects. This library 
     }
 
 [1]: https://link.springer.com/chapter/10.1007/BFb0031988
+[2]: https://dl.acm.org/doi/10.1145/2629606
