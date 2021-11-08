@@ -289,9 +289,8 @@ boolean ones.
 
 Note that the library only evaluates signals and operations at 
 pivot points, where their value changes. This might result in 
-invalid values for some connectives (`product`). 
-
-Consider the following code as an example:
+invalid values for some connectives (`product`). Consider the 
+following example:
 ```
 data = {
     'a': [(0, 0.5), (1, 0.1)],
@@ -299,7 +298,7 @@ data = {
 
 phi = mtl.parse('G(a)')
 print(phi(data, quantitative=False))
-# output: 0.5
+# output: 0.05
 ```
 
 Under the `product` connective (See [FT-LTL][2]), the norm operator
