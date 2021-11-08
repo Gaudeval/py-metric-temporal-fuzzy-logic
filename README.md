@@ -9,9 +9,9 @@ TODO: Logo
 > **WARNING**: This is an experimental fork of the `metric-temporal-logic` library, 
 > available at [mvcisback/py-metric-temporal-logic](https://github.com/mvcisback/py-metric-temporal-logic). 
 > It adds support for different fuzzy connectives to the evaluation logic; the 
-> changes support different semantics for the core logical operations: norm, conorm, 
-> implication, and negation. Unless those changes are a strong requirement, we 
-> recommend the use of the original library.
+> changes support different semantics for the core logical operations: norm (and), 
+> conorm (or), implication, and negation (not). Unless those changes are a strong 
+> requirement, we recommend the use of the original library.
 
 <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-generate-toc again -->
 **Table of Contents**
@@ -26,6 +26,7 @@ TODO: Logo
         - [Propositional logic (parse api)](#propositional-logic-parse-api)
         - [Modal Logic (parser api)](#modal-logic-parser-api)
     - [Boolean Evaluation](#boolean-evaluation)
+    - [Fuzzy Evaluation](#fuzzy-evaluation)
     - [Quantitative Evaluate (Signal Temporal Logic)](#quantitative-evaluate-signal-temporal-logic)
     - [Utilities](#utilities)
 - [Similar Projects](#similar-projects)
@@ -242,11 +243,53 @@ print(phi(data, dt=0.2, quantitative=False))
 
 ## Fuzzy Evaluation
 
-TODO: Examples
+Fuzzy evaluation considers the signals as fuzzy values or values to be
+compared through fuzzy operators. The connectives used for evaluation,
+that is the implementation of the basic logic operations such as `and`
+or `or`, can be specified through the `logic` parameter. The connectives 
+available in `mtl.connective` are `default`, `zadeh`, `godel`, 
+`lukasiewicz`, and `product` (See [FT-LTL][2]).
+
+```python
+a = mtl.parse("a")
+b = mtl.parse("b")
+
+d = {
+    "a": [(0,  5.), (1, 10.),           (3,  0.), (4, 10.), (5, 11.)],
+    "b": [(0, 15.),           (2,  5.),           (4, 10.),        ],
+}
+
+# Crisp comparison between the value of a and a constant
+i = a < 6
+print(i, i(d, time=None, logic=mtl.connective.zadeh, quantitative=True))
+# output: (a < 6) [(0, 1.0), (1, 0.0), (3, 1.0), (4, 0.0), (5, 0.0)]
+
+# Crisp comparison between the value of a and b
+i = a < b
+print(i, i(d, time=None, logic=mtl.connective.zadeh, quantitative=True))
+# output: (a < b) [(0, 1.0), (1, 1.0), (2, 0.0), (3, 1.0), (4, 0.0), (5, 0.0)]
+
+# Fuzzy comparison between the value of a and b, increasing as a decreases in the interval (b;b+10]
+i = a.lt(b, 10)
+print(i, i(d, time=None, logic=mtl.connective.zadeh, quantitative=True))
+# output: (a <[~10] b) [(0, 1.0), (1, 1.0), (2, 0.5), (3, 1.0), (4, 1.0), (5, 0.9)]
+
+# Temporal fuzzy operation
+i = a.lt(b, 10).always()
+print(i, i(d, logic=mtl.connective.zadeh, quantitative=True))
+# output: G(a <[~10] b) 0.5
+```
+
+### Fuzzy caveats
+
+Consider using `quantitvative=True` when specifying a fuzzy logic. 
+Combining fuzzy and boolean evaluation might result in unexpected 
+behaviours due to the underlying conversion of signal values to 
+boolean ones. 
 
 Note that the library only evaluates signals and operations at 
-pivot points, where their value changes. Such valuation might 
-result in invalid valuations for some connectives (`Product`). 
+pivot points, where their value changes. This might result in 
+invalid values for some connectives (`product`). 
 
 Consider the following code as an example:
 ```
@@ -259,11 +302,11 @@ print(phi(data, quantitative=False))
 # output: 0.5
 ```
 
-Under both the `Product` connective (See [FT-LTL][2]), the norm
-used for the valuation of *always (G)* is defined as the product
-of the two values. `phi` thus evaluates to `0.05 = 0.5 * 0.1` 
-across the whole signal when it should tends towards `0` due to
-the repeated valuation of `a < 1` at all time instants.
+Under the `product` connective (See [FT-LTL][2]), the norm operator
+is defined as the product of two values. `phi` thus evaluates to 
+`0.05 = 0.5 * 0.1` across the whole signal when it should actually 
+tend towards `0` due to the repeated valuation of `a < 1` at all 
+time instants.
 
 
 ## Utilities
