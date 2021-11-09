@@ -4,9 +4,9 @@ from math import isfinite
 
 from discrete_signals import signal
 
-from mtl import ast
-from mtl.ast import (And, G, Neg, Next, WeakUntil,
-                     AtomicPred, _Bot)
+from mtfl import ast
+from mtfl.ast import (And, G, Neg, Next, WeakUntil,
+                      AtomicPred, _Bot)
 
 oo = float('inf')
 

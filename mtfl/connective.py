@@ -5,7 +5,7 @@ from typing import Callable, Iterable
 import attr
 from discrete_signals import signal
 
-from mtl import ast
+from mtfl import ast
 
 OO = float('inf')
 

@@ -9,7 +9,7 @@ import funcy as fn
 from discrete_signals import signal, DiscreteSignal
 from sortedcontainers import SortedDict
 
-from mtl import ast
+from mtfl import ast
 
 
 OO = float('inf')
@@ -67,7 +67,7 @@ def booleanize_signal(sig, logic):
 
 def pointwise_sat(phi, dt=0.1, logic=None):
     if logic is None:
-        from mtl import connective
+        from mtfl import connective
         logic = connective.default
     f = eval_mtl(phi, dt, logic)
 
@@ -79,7 +79,10 @@ def pointwise_sat(phi, dt=0.1, logic=None):
 
         if t is None:
             res = [(t, v[phi]) for t, v in f(sig).items() if t >= start_time]
-            return res if quantitative else [(t, v >= logic.const_true) for t, v in res]
+            if quantitative:
+                return res
+            else:
+                return [(t, v >= logic.const_true) for t, v in res]
 
         if t is False:  # Use original signals starting time.
             t = start_time
@@ -136,7 +139,9 @@ def eval_mtl_lt(phi, dt, logic):
         elif v[phi.arg2] <= v[phi.arg1] - phi.tolerance:
             return logic.const_false
         else:
-            return ((v[phi.arg2] - (v[phi.arg1] - phi.tolerance)) / phi.tolerance) * (logic.const_true - logic.const_false) + logic.const_false
+            logic_range = (logic.const_true - logic.const_false)
+            c = (v[phi.arg2] - (v[phi.arg1] - phi.tolerance)) / phi.tolerance
+            return c * logic_range + logic.const_false
 
     def _eval(x):
         sig = dense_compose(f1(x), f2(x), init=logic.const_false)
@@ -235,7 +240,8 @@ def eval_mtl_g(phi, dt, logic):
     def _rolling(s, aa, bb):
         assert aa == 0, f"{aa} -- {phi}"
         # Interpolate the whole signal to include pivot points
-        d = SortedDict({t: s[t][phi.arg] for t in s.times() if phi.arg in s[t]})
+        d = SortedDict({t: s[t][phi.arg]
+                        for t in s.times() if phi.arg in s[t]})
         for t in set(d.keys()):
             idx = max(d.bisect_right(t) - 1, 0)
             key = d.keys()[idx]

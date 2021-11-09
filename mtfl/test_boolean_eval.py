@@ -1,8 +1,8 @@
 import hypothesis.strategies as st
 from hypothesis import given
 
-import mtl
-from mtl.hypothesis import MetricTemporalLogicStrategy
+import mtfl
+from mtfl.hypothesis import MetricTemporalLogicStrategy
 
 x = {
     "ap1": [(0, True), (0.1, True), (0.2, False)],
@@ -14,19 +14,19 @@ x = {
 }
 
 
-@given(st.just(mtl.ast.Next(mtl.BOT) | mtl.ast.Next(mtl.TOP)))
+@given(st.just(mtfl.ast.Next(mtfl.BOT) | mtfl.ast.Next(mtfl.TOP)))
 def test_eval_smoke_tests(phi):
-    assert mtl.parse('~ap4')(x, 0, quantitative=False)
-    assert mtl.parse('G[0.1, 0.03] ~ap4')(x, 0, quantitative=False)
+    assert mtfl.parse('~ap4')(x, 0, quantitative=False)
+    assert mtfl.parse('G[0.1, 0.03] ~ap4')(x, 0, quantitative=False)
 
-    phi6 = mtl.parse('G[0.1, 0.03] ~ap5')
+    phi6 = mtfl.parse('G[0.1, 0.03] ~ap5')
     assert phi6(x, 0, quantitative=False)
     assert phi6(x, 0.2, quantitative=False)
 
-    assert mtl.parse('G ~ap4')(x, 0, quantitative=False)
-    assert mtl.parse('F ap5')(x, 0, quantitative=False)
-    assert mtl.parse('(ap1 U ap2)')(x, 0, quantitative=False)
-    assert not mtl.parse('(ap2 U ap2)')(x, 0, quantitative=False)
+    assert mtfl.parse('G ~ap4')(x, 0, quantitative=False)
+    assert mtfl.parse('F ap5')(x, 0, quantitative=False)
+    assert mtfl.parse('(ap1 U ap2)')(x, 0, quantitative=False)
+    assert not mtfl.parse('(ap2 U ap2)')(x, 0, quantitative=False)
 
 
 @given(MetricTemporalLogicStrategy)
@@ -55,5 +55,5 @@ def test_temporal_identity4(phi):
 
 @given(MetricTemporalLogicStrategy)
 def test_temporal_identity5(phi):
-    assert mtl.TOP.until(phi)(x, 0, quantitative=False) \
+    assert mtfl.TOP.until(phi)(x, 0, quantitative=False) \
         == phi.eventually()(x, 0, quantitative=False)

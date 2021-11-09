@@ -67,13 +67,13 @@ run:
 
 # Usage
 
-To begin, we import `mtl`.
+To begin, we import `mtfl`.
 
 ```python
-import mtl
+import mtfl
 ```
 
-There are **two** APIs for interacting with the `mtl` module. Namely, one can specify the MTL expression using:
+There are **two** APIs for interacting with the `mtfl` module. Namely, one can specify the MTL expression using:
 1. [Python Operators](#python-operator-api).
 2. [Strings + The parse API](#string-based-api).
 
@@ -83,7 +83,7 @@ We begin with the Python Operator API:
 
 ### Propositional logic (using python syntax)
 ```python
-a, b = mtl.parse('a'), mtl.parse('b')
+a, b = mtfl.parse('a'), mtfl.parse('b')
 phi0 = ~a
 phi1 = a & b
 phi2 = a | b
@@ -96,7 +96,7 @@ phi5 = a.implies(b)
 ### Modal Logic (using python syntax)
 
 ```python
-a, b = mtl.parse('a'), mtl.parse('b')
+a, b = mtfl.parse('a'), mtfl.parse('b')
 
 # Eventually `a` will hold.
 phi1 = a.eventually()
@@ -126,46 +126,46 @@ phi7 = a >> 2
 ### Propositional logic (parse api)
 ```python
 # - Lowercase strings denote atomic predicates.
-phi0 = mtl.parse('atomicpred')
+phi0 = mtfl.parse('atomicpred')
 
 # - infix operators need to be surrounded by parens.
-phi1 = mtl.parse('((a & b & c) | d | e)')
-phi2 = mtl.parse('(a -> b) & (~a -> c)')
-phi3 = mtl.parse('(a -> b -> c)')
-phi4 = mtl.parse('(a <-> b <-> c)')
-phi5 = mtl.parse('(x ^ y ^ z)')
+phi1 = mtfl.parse('((a & b & c) | d | e)')
+phi2 = mtfl.parse('(a -> b) & (~a -> c)')
+phi3 = mtfl.parse('(a -> b -> c)')
+phi4 = mtfl.parse('(a <-> b <-> c)')
+phi5 = mtfl.parse('(x ^ y ^ z)')
 
 # - Unary operators (negation)
-phi6 = mtl.parse('~a')
-phi7 = mtl.parse('~(a)')
+phi6 = mtfl.parse('~a')
+phi7 = mtfl.parse('~(a)')
 ```
 
 ### Modal Logic (parser api)
 
 ```python
 # Eventually `x` will hold.
-phi1 = mtl.parse('F x')
+phi1 = mtfl.parse('F x')
 
 # `x & y` will always hold.
-phi2 = mtl.parse('G(x & y)')
+phi2 = mtfl.parse('G(x & y)')
 
 # `x` holds until `y` holds. 
 # Note that since `U` is binary, it requires parens.
-phi3 = mtl.parse('(x U y)')
+phi3 = mtfl.parse('(x U y)')
 
 # Weak until (`y` never has to hold).
-phi4 = mtl.parse('(x W y)')
+phi4 = mtfl.parse('(x W y)')
 
 # Whenever `x` holds, then `y` holds in the next two time units.
-phi5 = mtl.parse('G(x -> F[0, 2] y)')
+phi5 = mtfl.parse('G(x -> F[0, 2] y)')
 
 # We also support timed until.
-phi6 = mtl.parse('(a U[0, 2] b)')
+phi6 = mtfl.parse('(a U[0, 2] b)')
 
 # Finally, if time is discretized, we also support the next operator.
 # Thus, LTL can also be modeled.
 # `a` holds in two time steps.
-phi7 = mtl.parse('XX a')
+phi7 = mtfl.parse('XX a')
 ```
 
 ## Quantitative Evaluate (Signal Temporal Logic)
@@ -187,7 +187,7 @@ data = {
     'b': [(0, 20), (0.2, 2), (4, -10)]
 }
 
-phi = mtl.parse('F(a | b)')
+phi = mtfl.parse('F(a | b)')
 print(phi(data))
 # output: 100
 
@@ -196,7 +196,7 @@ print(phi(data, time=3))
 # output: 2
 
 # Evaluate with discrete time
-phi = mtl.parse('X b')
+phi = mtfl.parse('X b')
 print(phi(data, dt=0.2))
 # output: 2
 ```
@@ -216,11 +216,11 @@ data = {
     'b': [(0, False), (0.2, True), (4, False)]
 }
 
-phi = mtl.parse('F(a | b)')
+phi = mtfl.parse('F(a | b)')
 print(phi(data, quantitative=False))
 # output: True
 
-phi = mtl.parse('F(a | b)')
+phi = mtfl.parse('F(a | b)')
 print(phi(data))
 # output: True
 
@@ -235,7 +235,7 @@ print(phi(data, time=None, quantitative=False))
 # output: [(0, True), (0.2, True), (4, False)]
 
 # Evaluate with discrete time
-phi = mtl.parse('X b')
+phi = mtfl.parse('X b')
 print(phi(data, dt=0.2, quantitative=False))
 # output: True
 ```
@@ -247,12 +247,12 @@ Fuzzy evaluation considers the signals as fuzzy values or values to be
 compared through fuzzy operators. The connectives used for evaluation,
 that is the implementation of the basic logic operations such as `and`
 or `or`, can be specified through the `logic` parameter. The connectives 
-available in `mtl.connective` are `default`, `zadeh`, `godel`, 
+available in `mtfl.connective` are `default`, `zadeh`, `godel`, 
 `lukasiewicz`, and `product` (See [FT-LTL][2]).
 
 ```python
-a = mtl.parse("a")
-b = mtl.parse("b")
+a = mtfl.parse("a")
+b = mtfl.parse("b")
 
 d = {
     "a": [(0,  5.), (1, 10.),           (3,  0.), (4, 10.), (5, 11.)],
@@ -261,22 +261,22 @@ d = {
 
 # Crisp comparison between the value of a and a constant
 i = a < 6
-print(i, i(d, time=None, logic=mtl.connective.zadeh, quantitative=True))
+print(i, i(d, time=None, logic=mtfl.connective.zadeh, quantitative=True))
 # output: (a < 6) [(0, 1.0), (1, 0.0), (3, 1.0), (4, 0.0), (5, 0.0)]
 
 # Crisp comparison between the value of a and b
 i = a < b
-print(i, i(d, time=None, logic=mtl.connective.zadeh, quantitative=True))
+print(i, i(d, time=None, logic=mtfl.connective.zadeh, quantitative=True))
 # output: (a < b) [(0, 1.0), (1, 1.0), (2, 0.0), (3, 1.0), (4, 0.0), (5, 0.0)]
 
 # Fuzzy comparison between the value of a and b, increasing as a decreases in the interval (b;b+10]
 i = a.lt(b, 10)
-print(i, i(d, time=None, logic=mtl.connective.zadeh, quantitative=True))
+print(i, i(d, time=None, logic=mtfl.connective.zadeh, quantitative=True))
 # output: (a <[~10] b) [(0, 1.0), (1, 1.0), (2, 0.5), (3, 1.0), (4, 1.0), (5, 0.9)]
 
 # Temporal fuzzy operation
 i = a.lt(b, 10).always()
-print(i, i(d, logic=mtl.connective.zadeh, quantitative=True))
+print(i, i(d, logic=mtfl.connective.zadeh, quantitative=True))
 # output: G(a <[~10] b) 0.5
 ```
 
@@ -296,7 +296,7 @@ data = {
     'a': [(0, 0.5), (1, 0.1)],
 }
 
-phi = mtl.parse('G(a)')
+phi = mtfl.parse('G(a)')
 print(phi(data, quantitative=False))
 # output: 0.05
 ```
@@ -310,13 +310,13 @@ time instants.
 
 ## Utilities
 ```python
-import mtl
-from mtl import utils
+import mtfl
+from mtfl import utils
 
-print(utils.scope(mtl.parse('XX a'), dt=0.1))
+print(utils.scope(mtfl.parse('XX a'), dt=0.1))
 # output: 0.2
 
-print(utils.discretize(mtl.parse('F[0, 0.2] a'), dt=0.1))
+print(utils.discretize(mtfl.parse('F[0, 0.2] a'), dt=0.1))
 # output: (a | X a | XX a)
 ```
 

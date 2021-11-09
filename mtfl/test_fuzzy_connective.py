@@ -4,7 +4,7 @@ from itertools import repeat
 import hypothesis.strategies as st
 from hypothesis import given
 
-from mtl.connective import default, godel, zadeh, lukasiewicz, product
+from mtfl.connective import default, godel, zadeh, lukasiewicz, product
 
 OO = float('inf')
 

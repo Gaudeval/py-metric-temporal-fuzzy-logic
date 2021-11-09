@@ -4,8 +4,8 @@ from functools import partialmethod, reduce
 from typing import TypeVar
 
 from parsimonious import Grammar, NodeVisitor
-from mtl import ast
-from mtl import sugar
+from mtfl import ast
+from mtfl import sugar
 
 
 MTL = TypeVar("MTL")

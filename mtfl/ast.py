@@ -6,7 +6,7 @@ import attr
 import funcy as fn
 from lenses import bind
 
-from mtl import sugar
+from mtfl import sugar
 
 
 Node = TypeVar("Node")
@@ -51,7 +51,7 @@ def _neg(exp):
 
 
 def _eval(exp, trace, time=False, *, dt=0.1, quantitative=True, logic=None):
-    from mtl import evaluator
+    from mtfl import evaluator
     return evaluator.pointwise_sat(exp, dt, logic)(trace, time, quantitative)
 
 

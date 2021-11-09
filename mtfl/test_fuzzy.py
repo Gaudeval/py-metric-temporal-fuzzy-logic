@@ -1,9 +1,9 @@
 from hypothesis import given, strategies as st
 
-import mtl
+import mtfl
 
-from mtl.connective import godel, zadeh, lukasiewicz, product
-from mtl.hypothesis import MetricTemporalLogicStrategy
+from mtfl.connective import godel, zadeh, lukasiewicz, product
+from mtfl.hypothesis import MetricTemporalLogicStrategy
 
 
 VALUES = {
@@ -33,12 +33,12 @@ def prepare_values(a, b, c):
 )
 def test_fuzzy_binop(con, a: float, b: float, c: float):
     x = prepare_values(a, b, c)
-    assert mtl.parse("(apa & apb)")(x, 0, logic=con) == con.tnorm([a, b])
-    assert mtl.parse("(apa & apb & apc)")(x, 0, logic=con) \
+    assert mtfl.parse("(apa & apb)")(x, 0, logic=con) == con.tnorm([a, b])
+    assert mtfl.parse("(apa & apb & apc)")(x, 0, logic=con) \
         == con.tnorm([a, b, c])
 
-    assert mtl.parse("(apa | apb)")(x, 0, logic=con) == con.tconorm([a, b])
-    assert mtl.parse("(apa | apb | apc)")(x, 0, logic=con) \
+    assert mtfl.parse("(apa | apb)")(x, 0, logic=con) == con.tconorm([a, b])
+    assert mtfl.parse("(apa | apb | apc)")(x, 0, logic=con) \
         == con.tconorm([a, b, c])
 
 
@@ -60,7 +60,7 @@ def test_fuzzy_until(con, a: float, b: float, c: float):
 )
 def test_fuzzy_implies(con, a: float, b: float, c: float):
     x = prepare_values(a, b, c)
-    assert mtl.parse("(apa -> apb)")(x, 0, logic=con) == con.implication(a, b)
+    assert mtfl.parse("(apa -> apb)")(x, 0, logic=con) == con.implication(a, b)
 
 
 @given(
@@ -71,7 +71,7 @@ def test_fuzzy_implies(con, a: float, b: float, c: float):
 )
 def test_fuzzy_always(con, a: float, b: float, c: float):
     x = prepare_values(a, b, c)
-    assert mtl.parse("G ap1")(x, 0, logic=con) == con.tnorm([a, b, c])
+    assert mtfl.parse("G ap1")(x, 0, logic=con) == con.tnorm([a, b, c])
 
 
 @given(
@@ -82,7 +82,7 @@ def test_fuzzy_always(con, a: float, b: float, c: float):
 )
 def test_fuzzy_neg(con, a: float, b: float, c: float):
     x = prepare_values(a, b, c)
-    assert mtl.parse("~ap1")(x, 0, logic=con) == con.negation(a)
+    assert mtfl.parse("~ap1")(x, 0, logic=con) == con.negation(a)
 
 
 @given(
