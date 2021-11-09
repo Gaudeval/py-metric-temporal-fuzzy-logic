@@ -1,10 +1,10 @@
 [tool.poetry]
 name = "metric-temporal-fuzzy-logic"
 readme="README.md"
-version = "0.0.4"
+version = "0.0.5"
 description = "A library for manipulating and evaluating metric temporal (fuzzy) logic."
 repository = "https://github.com/Gaudeval/py-metric-temporal-fuzzy-logic"
-authors = ["Marcell Vazquez-Chanlatte <mvc@linux.com>"]
+authors = ["Gaudeval", "Marcell Vazquez-Chanlatte <mvc@linux.com>"]
 license = "MIT"
 packages = [
     { include = "mtfl" },
