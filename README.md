@@ -1,4 +1,4 @@
-TODO: Logo
+# py-metric-temporal-fuzzy-logic
 
 <!-- [![Build Status](https://cloud.drone.io/api/badges/mvcisback/py-metric-temporal-logic/status.svg)](https://cloud.drone.io/mvcisback/py-metric-temporal-logic) -->
 <!-- [![codecov](https://codecov.io/gh/mvcisback/py-metric-temporal-logic/branch/master/graph/badge.svg)](https://codecov.io/gh/mvcisback/py-metric-temporal-logic) -->
@@ -8,7 +8,7 @@ TODO: Logo
 
 > **WARNING**: This is an experimental fork of the `metric-temporal-logic` library, 
 > available at [mvcisback/py-metric-temporal-logic](https://github.com/mvcisback/py-metric-temporal-logic). 
-> It adds support for different fuzzy connectives to the evaluation logic; the 
+> THis fork adds support for different fuzzy connectives to the evaluation logic; the 
 > changes support different semantics for the core logical operations: norm (and), 
 > conorm (or), implication, and negation (not). Unless those changes are a strong 
 > requirement, we recommend the use of the original library.
