@@ -274,7 +274,7 @@ def eval_mtl_g(phi, dt, logic):
                     ) << a
                 else:
                     return signal(
-                        _rolling(tmp),
+                        _rolling(tmp, a, b),
                         tmp.start,
                         tmp.end - b if b < tmp.end else tmp.end,
                         tag=phi
